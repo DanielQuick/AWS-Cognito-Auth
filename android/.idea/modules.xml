@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../../../affl_go/android/affl_go-android.iml" filepath="$PROJECT_DIR$/../../../affl_go/android/affl_go-android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../example/android/android.iml" filepath="$PROJECT_DIR$/../example/android/android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../../affl_go/android/app/android-app.iml" filepath="$PROJECT_DIR$/../../../affl_go/android/app/android-app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../example/android/app/app.iml" filepath="$PROJECT_DIR$/../example/android/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/aws_cognito_auth.iml" filepath="$PROJECT_DIR$/aws_cognito_auth.iml" />
+      <module fileurl="file://$USER_HOME$/Documents/flutter/.pub-cache/hosted/pub.dartlang.org/geocoder-0.2.1/android/geocoder.iml" filepath="$USER_HOME$/Documents/flutter/.pub-cache/hosted/pub.dartlang.org/geocoder-0.2.1/android/geocoder.iml" />
+      <module fileurl="file://$USER_HOME$/Documents/flutter/.pub-cache/hosted/pub.dartlang.org/google_maps_flutter-0.5.21+8/android/google_maps_flutter.iml" filepath="$USER_HOME$/Documents/flutter/.pub-cache/hosted/pub.dartlang.org/google_maps_flutter-0.5.21+8/android/google_maps_flutter.iml" />
+      <module fileurl="file://$USER_HOME$/Documents/flutter/.pub-cache/hosted/pub.dartlang.org/keyboard_visibility-0.5.6/android/keyboard_visibility.iml" filepath="$USER_HOME$/Documents/flutter/.pub-cache/hosted/pub.dartlang.org/keyboard_visibility-0.5.6/android/keyboard_visibility.iml" />
+      <module fileurl="file://$USER_HOME$/Documents/flutter/.pub-cache/hosted/pub.dartlang.org/url_launcher-5.2.5/android/url_launcher.iml" filepath="$USER_HOME$/Documents/flutter/.pub-cache/hosted/pub.dartlang.org/url_launcher-5.2.5/android/url_launcher.iml" />
+    </modules>
+  </component>
+</project>
