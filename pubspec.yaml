@@ -9,7 +9,8 @@ environment:
 
 dependencies:
   auth_ui:
-    path: "../auth_ui"
+    git:
+      url: git://github.com/DanielQuick/Auth-UI
 
   flutter:
     sdk: flutter

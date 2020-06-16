@@ -11,9 +11,11 @@ packages:
   auth_ui:
     dependency: transitive
     description:
-      path: "../../auth_ui"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "4551a7f7aa44ffb0558eeb62beb208d9b0606000"
+      url: "git://github.com/DanielQuick/Auth-UI"
+    source: git
     version: "0.0.1"
   aws_cognito_auth:
     dependency: "direct dev"
@@ -155,7 +157,7 @@ packages:
       name: test_api
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.15"
+    version: "0.2.16"
   typed_data:
     dependency: transitive
     description:
