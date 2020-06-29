@@ -1,6 +1,8 @@
 package com.example.aws_cognito_auth
 
 import androidx.annotation.NonNull;
+import android.util.Log
+import java.lang.Runnable
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -16,11 +18,15 @@ import android.app.Activity
 
 import com.amplifyframework.core.Amplify
 import com.amplifyframework.auth.options.AuthSignUpOptions
+import com.amplifyframework.auth.AuthUserAttribute;
 import com.amplifyframework.auth.AuthUserAttributeKey
 import com.amplifyframework.auth.result.AuthSignUpResult
 import com.amplifyframework.auth.result.AuthSignInResult;
 import com.amplifyframework.auth.cognito.AWSCognitoAuthPlugin
 import com.amplifyframework.auth.result.AuthResetPasswordResult;
+
+import com.amazonaws.mobile.client.AWSMobileClient;
+import com.amazonaws.mobile.client.Callback;
 
 /** AmplifyConfigurePlugin */
 public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
@@ -47,10 +53,6 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     val context = flutterPluginBinding.getApplicationContext()
-
-    Amplify.addPlugin(AWSCognitoAuthPlugin())
-    Amplify.configure(context)
-
     channel = MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "aws_cognito_auth")
     channel.setMethodCallHandler(this);
   }
@@ -68,10 +70,6 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
     @JvmStatic
     fun registerWith(registrar: Registrar) {
       val context = registrar.context()
-
-      Amplify.addPlugin(AWSCognitoAuthPlugin())
-      Amplify.configure(context)
-
       val channel = MethodChannel(registrar.messenger(), "aws_cognito_auth")
       channel.setMethodCallHandler(AwsCognitoAuthPlugin())
     }
@@ -79,7 +77,13 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
     when (call.method) {
-      "signUp" -> signUp(call.argument<String>("username") ?: "", call.argument<String>("password") ?: "", call.argument<String>("email") ?: "", call.argument<String>("name") ?: "", result)
+      "initialize" -> initialize(result)
+      "signUp" -> signUp(call.argument<String>("username") ?: "", call.argument<String>("password") ?: "",
+          call.argument<String>("email"),
+          call.argument<String>("name"),
+          call.argument<String>("givenName"),
+          call.argument<String>("familyName"),
+          result)
       "confirmSignUp" -> confirmSignUp(call.argument<String>("username") ?: "", call.argument<String>("code") ?: "", result)
       "resendSignUpCode" -> resendSignUpCode(call.argument<String>("username") ?: "", result)
       "signIn" -> signIn(call.argument<String>("username") ?: "", call.argument<String>("password") ?: "", result)
@@ -87,6 +91,7 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
       "resetPassword" -> resetPassword(call.argument<String>("username") ?: "", result)
       "confirmResetPassword" -> confirmResetPassword(call.argument<String>("password") ?: "",call.argument<String>("code") ?: "", result)
       "updatePassword" -> updatePassword(call.argument<String>("password") ?: "", call.argument<String>("newPassword") ?: "", result)
+      "getUserAttributes" -> getUserAttributes(result)
 
       else -> result.notImplemented()
     }
@@ -96,11 +101,30 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
     channel.setMethodCallHandler(null)
   }
 
-  fun signUp(username : String, password : String, email : String, name : String, flutterResult: Result) {
+  fun initialize(flutterResult: Result) {
+    Amplify.addPlugin(AWSCognitoAuthPlugin())
+    flutterResult.success(true);
+  }
+
+  fun signUp(username : String, password : String, email : String?, name : String?, givenName : String?, familyName : String?, flutterResult: Result) {
+    val attributes = mutableListOf<AuthUserAttribute>()
+    if (email != null) {
+      attributes.add(AuthUserAttribute(AuthUserAttributeKey.email(), email))
+    }
+    if (name != null) {
+      attributes.add(AuthUserAttribute(AuthUserAttributeKey.name(), name))
+    }
+    if (givenName != null) {
+      attributes.add(AuthUserAttribute(AuthUserAttributeKey.givenName(), givenName))
+    }
+    if (familyName != null) {
+      attributes.add(AuthUserAttribute(AuthUserAttributeKey.familyName(), familyName))
+    }
+
     Amplify.Auth.signUp(
         username,
         password,
-        AuthSignUpOptions.builder().userAttribute(AuthUserAttributeKey.email(), email).userAttribute(AuthUserAttributeKey.name(), name).build(),
+        AuthSignUpOptions.builder().userAttributes(attributes).build(),
         {
           result -> activity.runOnUiThread(
             java.lang.Runnable {
@@ -114,8 +138,7 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
               flutterResult.error(error.message, error.cause.toString(), error)
             }
           )
-        }
-    )
+        })
   }
 
   fun convertSignUpResult(result: AuthSignUpResult) : HashMap<String,Any> {
@@ -277,5 +300,23 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
           )
         }
     )
+  }
+
+  fun getUserAttributes(flutterResult : Result) {
+    val mobileClient = Amplify.Auth.getPlugin("awsCognitoAuthPlugin").escapeHatch as AWSMobileClient?
+    mobileClient!!.getUserAttributes(object : Callback<Map<String,String>> {
+
+        override fun onResult(result: Map<String,String>) {
+          activity.runOnUiThread(Runnable {
+            flutterResult.success(result)
+          })
+        }
+
+        override fun onError(e: Exception) {
+          activity.runOnUiThread(Runnable {
+            flutterResult.error("Could not get userAttributes", null, e)
+          })
+        }
+    })
   }
 }

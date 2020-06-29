@@ -1,20 +1,42 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class AwsCognitoAuth {
   static const MethodChannel _channel = const MethodChannel('aws_cognito_auth');
 
-  static Future<void> signUp(
-      String username, String password, String email, String name,
-      {Function(AuthSignUpResult) onResult,
-      Function(AuthSignUpError) onError}) async {
+  static Future<void> initialize({Function(Error) onError}) async {
     try {
-      var result = await _channel.invokeMapMethod<String, dynamic>("signUp", {
-        "username": username.trim().toLowerCase(),
-        "password": password.trim(),
-        "email": email.trim().toLowerCase(),
-        "name": name.trim(),
-      });
+      await _channel.invokeMethod("initialize");
+      print("successfully added AWSCognitoAuthPlugin to Amplify");
+    } catch (e) {
+      if (onError != null) onError(e);
+    }
+  }
+
+  static Future<void> signUp(String username, String password,
+      {String email, String name, String givenName, String familyName, Function(AuthSignUpResult) onResult,
+      Function(AuthSignUpError) onError}) async {
+
+    Map<String,dynamic> parameters = {
+      "username" : username.trim().toLowerCase(),
+      "password": password.trim(),
+    };
+    if (email != null) {
+      parameters["email"] = email.trim().toLowerCase();
+    }
+    if (name != null) {
+      parameters["name"] = name;
+    }
+    if (givenName != null) {
+      parameters["givenName"] = givenName;
+    }
+    if (familyName != null) {
+      parameters["familyName"] = familyName;
+    }
+    
+    try {
+      var result = await _channel.invokeMapMethod<String, dynamic>("signUp", parameters);
 
       if (onResult != null) {
         onResult(
@@ -90,7 +112,8 @@ class AwsCognitoAuth {
         "password": password.trim(),
       });
       if (onResult != null) {
-        onResult(AuthSignInResult(isSignInComplete: result["isSignInComplete"]));
+        onResult(
+            AuthSignInResult(isSignInComplete: result["isSignInComplete"]));
       }
     } catch (e) {
       print(e);
@@ -109,13 +132,17 @@ class AwsCognitoAuth {
     }
   }
 
-  static Future<void> resetPassword(String username, {Function(AuthResetPasswordResult) onResult, Function(AuthResetPasswordError) onError}) async {
+  static Future<void> resetPassword(String username,
+      {Function(AuthResetPasswordResult) onResult,
+      Function(AuthResetPasswordError) onError}) async {
     try {
-      var result = await _channel.invokeMapMethod<String, dynamic>("resetPassword", {
+      var result =
+          await _channel.invokeMapMethod<String, dynamic>("resetPassword", {
         "username": username.trim().toLowerCase(),
       });
       if (onResult != null) {
-        onResult(AuthResetPasswordResult(isPasswordReset: result["isPasswordReset"]));
+        onResult(AuthResetPasswordResult(
+            isPasswordReset: result["isPasswordReset"]));
       }
     } catch (e) {
       if (onError != null) {
@@ -124,9 +151,12 @@ class AwsCognitoAuth {
     }
   }
 
-  static Future<void> confirmResetPassword(String password, String code, {Function onResult, Function(AuthConfirmResetPasswordError) onError}) async {
+  static Future<void> confirmResetPassword(String password, String code,
+      {Function onResult,
+      Function(AuthConfirmResetPasswordError) onError}) async {
     try {
-      var _ = await _channel.invokeMapMethod<String, dynamic>("confirmResetPassword", {
+      var _ = await _channel
+          .invokeMethod("confirmResetPassword", {
         "password": password.trim(),
         "code": code.trim(),
       });
@@ -141,9 +171,11 @@ class AwsCognitoAuth {
     }
   }
 
-  static Future<void> updatePassword(String password, String newPassword, {Function onResult, Function onError}) async {
+  static Future<void> updatePassword(String password, String newPassword,
+      {Function onResult, Function onError}) async {
     try {
-      var _ = await _channel.invokeMapMethod<String, dynamic>("updatePassword", {
+      var _ =
+          await _channel.invokeMapMethod<String, dynamic>("updatePassword", {
         "password": password.trim(),
         "newPassword": newPassword.trim(),
       });
@@ -155,6 +187,18 @@ class AwsCognitoAuth {
       if (onError != null) {
         onError();
       }
+    }
+  }
+
+  static Future<Map<String,String>> getUserAttributes({Function(Error) onError}) async {
+    try {
+      final result =
+          await _channel.invokeMapMethod<String, String>("getUserAttributes");
+      return result;
+    } catch (e) {
+      if (onError != null) onError(e);
+      else print(e);
+      return null;
     }
   }
 }
@@ -177,13 +221,16 @@ class AuthConfirmResetPasswordError {
   final ConfirmResetPasswordError error;
   final String suggestedErrorMessage;
 
-  AuthConfirmResetPasswordError({this.error = ConfirmResetPasswordError.unknown, this.suggestedErrorMessage = "Something went wrong. Please try again soon."});
+  AuthConfirmResetPasswordError(
+      {this.error = ConfirmResetPasswordError.unknown,
+      this.suggestedErrorMessage =
+          "Something went wrong. Please try again soon."});
 
   static AuthConfirmResetPasswordError parse(PlatformException e) {
     var error = ConfirmResetPasswordError.unknown;
     String suggestedErrorMessage =
         "Something went wrong. Please try again soon.";
-        
+
     if (e.message.contains("Password not long enough") ||
         e.message
             .contains("Member must have length greater than or equal to 6")) {
@@ -203,11 +250,11 @@ class AuthConfirmResetPasswordError {
     } else if (e.message.contains("Password must have symbol characters")) {
       error = ConfirmResetPasswordError.passwordRequireSymbol;
       suggestedErrorMessage = "Your password must contain at least one symbol";
-    } else if (e.message.contains(
-        "Attempt limit exceeded, please try after some time")) {
+    } else if (e.message
+        .contains("Attempt limit exceeded, please try after some time")) {
       error = ConfirmResetPasswordError.attempLimitExceeded;
-    } else if (e.message.contains(
-        "Invalid verification code provided, please try again")) {
+    } else if (e.message
+        .contains("Invalid verification code provided, please try again")) {
       error = ConfirmResetPasswordError.invalidCode;
       suggestedErrorMessage = "The verification code entered was incorrect";
     }
@@ -218,8 +265,6 @@ class AuthConfirmResetPasswordError {
     );
   }
 }
-
-// Value at 'password' failed to satisfy constraint: Member must have length greater than or equal to 6
 
 class AuthResetPasswordResult {
   final bool isPasswordReset;
@@ -251,19 +296,20 @@ class AuthResetPasswordError {
     String suggestedErrorMessage =
         "Something went wrong. Please try again soon.";
 
-    if (e.message.contains("Value at 'username' failed to satisfy constraint: Member must not be null")) {
+    if (e.message.contains(
+        "Value at 'username' failed to satisfy constraint: Member must not be null")) {
       error = ResetPasswordError.missingUsername;
       suggestedErrorMessage = "Please enter your email";
-    } else if (e.message.contains(
-        "Username/client id combination not found")) {
+    } else if (e.message.contains("Username/client id combination not found")) {
       error = ResetPasswordError.userNotFound;
       suggestedErrorMessage = "No account was found";
     } else if (e.message.contains(
         "Cannot reset password for the user as there is no registered/verified email or phone_number")) {
       error = ResetPasswordError.userNotVerified;
-      suggestedErrorMessage = "Your account must be verified before you can reset the password";
-    } else if (e.message.contains(
-        "Attempt limit exceeded, please try after some time")) {
+      suggestedErrorMessage =
+          "Your account must be verified before you can reset the password";
+    } else if (e.message
+        .contains("Attempt limit exceeded, please try after some time")) {
       error = ResetPasswordError.attemptLimitExceeded;
     }
     return AuthResetPasswordError(
@@ -297,19 +343,16 @@ class AuthSignInError {
   });
 
   static AuthSignInError parse(PlatformException e) {
-
     var error = SignInError.unknown;
     String suggestedErrorMessage =
         "Something went wrong. Please try again soon.";
     if (e.message.contains("Missing required parameter USERNAME")) {
       error = SignInError.missingUsername;
       suggestedErrorMessage = "Please enter your email";
-    } else if (e.message.contains(
-        "User does not exist")) {
+    } else if (e.message.contains("User does not exist")) {
       error = SignInError.userDoesNotExist;
       suggestedErrorMessage = "Incorrect email or password";
-    } else if (e.message.contains(
-        "Incorrect username or password")) {
+    } else if (e.message.contains("Incorrect username or password")) {
       error = SignInError.incorrectUsernameOrPassword;
       suggestedErrorMessage = "Incorrect email or password";
     } else if (e.message.contains("User is not confirmed")) {
