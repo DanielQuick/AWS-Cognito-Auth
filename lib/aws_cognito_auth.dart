@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 class AwsCognitoAuth {
   static const MethodChannel _channel = const MethodChannel('aws_cognito_auth');
 
-  static Future<void> initialize({Function(Error) onError}) async {
+  static Future<void> initialize({Function(dynamic) onError}) async {
     try {
       await _channel.invokeMethod("initialize");
       print("successfully added AWSCognitoAuthPlugin to Amplify");
@@ -15,11 +15,14 @@ class AwsCognitoAuth {
   }
 
   static Future<void> signUp(String username, String password,
-      {String email, String name, String givenName, String familyName, Function(AuthSignUpResult) onResult,
+      {String email,
+      String name,
+      String givenName,
+      String familyName,
+      Function(AuthSignUpResult) onResult,
       Function(AuthSignUpError) onError}) async {
-
-    Map<String,dynamic> parameters = {
-      "username" : username.trim().toLowerCase(),
+    Map<String, dynamic> parameters = {
+      "username": username.trim().toLowerCase(),
       "password": password.trim(),
     };
     if (email != null) {
@@ -34,9 +37,10 @@ class AwsCognitoAuth {
     if (familyName != null) {
       parameters["familyName"] = familyName;
     }
-    
+
     try {
-      var result = await _channel.invokeMapMethod<String, dynamic>("signUp", parameters);
+      var result =
+          await _channel.invokeMapMethod<String, dynamic>("signUp", parameters);
 
       if (onResult != null) {
         onResult(
@@ -128,7 +132,10 @@ class AwsCognitoAuth {
       await _channel.invokeMethod("signOut");
       if (onResult != null) onResult();
     } catch (e) {
-      if (onError != null) onError();
+      if (onError != null)
+        onError();
+      else
+        print(e);
     }
   }
 
@@ -155,8 +162,7 @@ class AwsCognitoAuth {
       {Function onResult,
       Function(AuthConfirmResetPasswordError) onError}) async {
     try {
-      var _ = await _channel
-          .invokeMethod("confirmResetPassword", {
+      var _ = await _channel.invokeMethod("confirmResetPassword", {
         "password": password.trim(),
         "code": code.trim(),
       });
@@ -190,15 +196,27 @@ class AwsCognitoAuth {
     }
   }
 
-  static Future<Map<String,String>> getUserAttributes({Function(Error) onError}) async {
+  static Future<Map<String, String>> getUserAttributes(
+      {Function(Error) onError}) async {
     try {
       final result =
           await _channel.invokeMapMethod<String, String>("getUserAttributes");
       return result;
     } catch (e) {
-      if (onError != null) onError(e);
-      else print(e);
+      if (onError != null)
+        onError(e);
+      else
+        print(e);
       return null;
+    }
+  }
+
+  static Future<bool> isSignedIn() async {
+    try {
+      var result = await _channel.invokeMethod("isSignedIn");
+      return result;
+    } catch (e) {
+      return false;
     }
   }
 }

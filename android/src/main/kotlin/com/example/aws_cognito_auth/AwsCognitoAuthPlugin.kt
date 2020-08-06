@@ -92,6 +92,7 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
       "confirmResetPassword" -> confirmResetPassword(call.argument<String>("password") ?: "",call.argument<String>("code") ?: "", result)
       "updatePassword" -> updatePassword(call.argument<String>("password") ?: "", call.argument<String>("newPassword") ?: "", result)
       "getUserAttributes" -> getUserAttributes(result)
+      "isSignedIn" -> isSignedIn(result)
 
       else -> result.notImplemented()
     }
@@ -303,20 +304,30 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
   }
 
   fun getUserAttributes(flutterResult : Result) {
+    try {
+      val mobileClient = Amplify.Auth.getPlugin("awsCognitoAuthPlugin").escapeHatch as AWSMobileClient?
+      mobileClient!!.getUserAttributes(object : Callback<Map<String,String>> {
+
+          override fun onResult(result: Map<String,String>) {
+            activity.runOnUiThread(Runnable {
+              flutterResult.success(result)
+            })
+          }
+
+          override fun onError(e: Exception) {
+            activity.runOnUiThread(Runnable {
+              flutterResult.error("Could not get userAttributes", null, e)
+            })
+          }
+      })
+    } catch (e: Exception) {
+      flutterResult.error("Could not get userAttributes", null, e)
+    }
+  }
+
+  fun isSignedIn(flutterResult : Result) {
     val mobileClient = Amplify.Auth.getPlugin("awsCognitoAuthPlugin").escapeHatch as AWSMobileClient?
-    mobileClient!!.getUserAttributes(object : Callback<Map<String,String>> {
 
-        override fun onResult(result: Map<String,String>) {
-          activity.runOnUiThread(Runnable {
-            flutterResult.success(result)
-          })
-        }
-
-        override fun onError(e: Exception) {
-          activity.runOnUiThread(Runnable {
-            flutterResult.error("Could not get userAttributes", null, e)
-          })
-        }
-    })
+    flutterResult.success(mobileClient!!.isSignedIn())
   }
 }

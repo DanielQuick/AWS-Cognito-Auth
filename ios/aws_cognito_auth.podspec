@@ -17,6 +17,7 @@ A new flutter plugin project.
   s.dependency 'Flutter'
 
   s.ios.deployment_target = '9.0'
-  s.dependency 'AWSMobileClient', '~> 2.10.0'
+  s.dependency 'Amplify'
+  s.dependency 'AmplifyPlugins/AWSCognitoAuthPlugin'
 end
 
