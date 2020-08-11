@@ -13,70 +13,67 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
             case "initialize":
-                initialize(call: call, result: result)
+                initialize(call: call, flutterResult: result)
                 break
             case "signUp":
-                signUp(call: call, result: result)
+                signUp(call: call, flutterResult: result)
                 break
             case "confirmSignUp":
-                confirmSignUp(call: call, result: result)
+                confirmSignUp(call: call, flutterResult: result)
                 break
             case "resendSignUpCode":
-                resendSignUpCode(call: call, result: result)
+                resendSignUpCode(call: call, flutterResult: result)
                 break
             case "signIn":
-                signIn(call: call, result: result)
+                signIn(call: call, flutterResult: result)
                 break
             case "signOut":
-                signOut(call: call, result: result)
+                signOut(call: call, flutterResult: result)
                 break
-            case "forgotPassword":
-                forgotPassword(call: call, result: result)
+            case "resetPassword":
+                resetPassword(call: call, flutterResult: result)
                 break
-            case "confirmForgotPassword":
-                confirmForgotPassword(call: call, result: result)
+            case "confirmResetPassword":
+                confirmResetPassword(call: call, flutterResult: result)
                 break
             case "isSignedIn":
-                isSignedIn(call: call, result: result)
+                isSignedIn(call: call, flutterResult: result)
                 break
-            case "changePassword":
-                changePassword(call: call, result: result)
+            case "updatePassword":
+                updatePassword(call: call, flutterResult: result)
                 break
-            case "getUsername":
-                getUsername(call: call, result: result)
-                break;
             case "getUserAttributes":
-                getUserAttributes(call: call, result: result);
+                getUserAttributes(call: call, flutterResult: result);
                 break;
             default:
-                result(nil);
+                result(FlutterMethodNotImplemented);
         }
     }
 
-    func initialize(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func initialize(call: FlutterMethodCall, flutterResult: @escaping FlutterResult) {
         do {
             try Amplify.add(plugin: AWSCognitoAuthPlugin())
             DispatchQueue.main.async {
-                result(true)
+                flutterResult(true)
             }
         } catch {
             DispatchQueue.main.async {
-                result(FlutterError(code: "Failed to add cognito plugin",
+                flutterResult(FlutterError(code: "Failed to add cognito plugin",
                             message: "",
-                            details: error.toString()))
+                            details: error))
             }
         }
     }
 
     func convertSignUpResult(_ result: AuthSignUpResult) -> [String:Any] {
         var dict = [String:Any]()
-        dict["isSignUpComplete"] = result.isSignUpComplete
+        dict["isSignUpComplete"] = result.isSignupComplete
         return dict
     }
 
     func convertSignInResult(_ result: AuthSignInResult) -> [String:Any] {
         var dict = [String:Any]()
-        dict["isSignInComplete"] = result.isSignInComplete
+        dict["isSignInComplete"] = result.isSignedIn
         return dict
     }
 
@@ -86,7 +83,7 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
         return dict
     }
 
-    func signUp(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func signUp(call: FlutterMethodCall, flutterResult: @escaping FlutterResult) {
         if let arguments = call.arguments as? NSDictionary {
             var username = ""
             var password = ""
@@ -99,41 +96,41 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
                 password = val
             }
 
-            let userAttributes = [AuthUserAttribute]()
+            var userAttributes = [AuthUserAttribute]()
 
             if let arg = arguments["email"], let val = arg as? String {
-                userAttributes.add(AuthUserAttribute(.email, value: val))
+                userAttributes.append(AuthUserAttribute(.email, value: val))
             }
             if let arg = arguments["name"], let val = arg as? String {
-                userAttributes.add(AuthUserAttribute(.email, value: val))
+                userAttributes.append(AuthUserAttribute(.email, value: val))
             }
             if let arg = arguments["givenName"], let val = arg as? String {
-                userAttributes.add(AuthUserAttribute(.email, value: val))
+                userAttributes.append(AuthUserAttribute(.email, value: val))
             }
             if let arg = arguments["familyName"], let val = arg as? String {
-                userAttributes.add(AuthUserAttribute(.email, value: val))
+                userAttributes.append(AuthUserAttribute(.email, value: val))
             }
 
             let options = AuthSignUpRequest.Options(userAttributes: userAttributes)
 
-            Amplify.Auth.signUp(username: username, password: password, options: options) { result in
+            _ = Amplify.Auth.signUp(username: username, password: password, options: options) { result in
                 switch result {
                     case .success(let signUpResult):
                         DispatchQueue.main.async {
-                            result(convertSignUpResult(signUpResult))
+                            flutterResult(self.convertSignUpResult(signUpResult))
                         }
                     case .failure(let error):
                         DispatchQueue.main.async {
-                            result(FlutterError(code: "Failed to sign up",
+                            flutterResult(FlutterError(code: "Failed to sign up",
                                         message: "",
-                                        details: error.toString()))
+                                        details: error))
                         }
                 }
             }
         }
     }
 
-    func confirmSignUp(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func confirmSignUp(call: FlutterMethodCall, flutterResult: @escaping FlutterResult) {
         if let arguments = call.arguments as? NSDictionary {
             var username = ""
             var confirmationCode = ""
@@ -146,24 +143,24 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
                 confirmationCode = val
             }
 
-            Amplify.Auth.confirmSignUp(for: username, confirmationCode: confirmationCode) { result in
+            _ = Amplify.Auth.confirmSignUp(for: username, confirmationCode: confirmationCode) { result in
                 switch result {
-                    case .success(_):
+                    case .success(let result):
                         DispatchQueue.main.async {
-                            result(convertSignUpResult(signUpResult))
+                            flutterResult(self.convertSignUpResult(result))
                         }
                     case .failure(let error):
                         DispatchQueue.main.async {
-                            result(FlutterError(code: "Failed to confirm sign up",
+                            flutterResult(FlutterError(code: "Failed to confirm sign up",
                                         message: "",
-                                        details: error.toString()))
+                                        details: error))
                         }
                 }
             }
         }
     }  
 
-    func resendSignUpCode(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func resendSignUpCode(call: FlutterMethodCall, flutterResult: @escaping FlutterResult) {
         if let arguments = call.arguments as? NSDictionary {
             var username = ""
             
@@ -171,24 +168,25 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
                 username = val
             }
 
-            Amplify.Auth.resendSignUpCode(for: username) { result in
+            _ = Amplify.Auth.resendSignUpCode(for: username) { result in
                 switch result {
+                    
                     case .success(_):
                         DispatchQueue.main.async {
-                            result(convertSignUpResult(signUpResult))
+                            flutterResult(true)
                         }
                     case .failure(let error):
                         DispatchQueue.main.async {
-                            result(FlutterError(code: "Failed to resend sign up code",
+                            flutterResult(FlutterError(code: "Failed to resend sign up code",
                                         message: "",
-                                        details: error.toString()))
+                                        details: error))
                         }
                 }
             }
         }
     }
 
-    func signIn(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func signIn(call: FlutterMethodCall, flutterResult: @escaping FlutterResult) {
         if let arguments = call.arguments as? NSDictionary {
             var username = ""
             var password = ""
@@ -200,41 +198,41 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
                 password = val
             }
 
-            Amplify.Auth.signIn(username: username, password: password) { result in
+            _ = Amplify.Auth.signIn(username: username, password: password) { result in
                 switch result {
-                    case .success(_):
+                    case .success(let result):
                         DispatchQueue.main.async {
-                            result(convertSignInResult(signUpResult))
+                            flutterResult(self.convertSignInResult(result))
                         }
                     case .failure(let error):
                         DispatchQueue.main.async {
-                            result(FlutterError(code: "Failed to sign in",
+                            flutterResult(FlutterError(code: "Failed to sign in",
                                         message: "",
-                                        details: error.toString()))
+                                        details: error))
                         }
                 }
             }
         }
     }
 
-    func signOut(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        Amplify.Auth.signOut() { result in
+    func signOut(call: FlutterMethodCall, flutterResult: @escaping FlutterResult) {
+        _ = Amplify.Auth.signOut() { result in
             switch result {
                 case .success:
                     DispatchQueue.main.async {
-                        result(true)
+                        flutterResult(true)
                     }
                 case .failure(let error):
                     DispatchQueue.main.async {
-                        result(FlutterError(code: "Failed to sign out",
+                        flutterResult(FlutterError(code: "Failed to sign out",
                                     message: "",
-                                    details: error.toString()))
+                                    details: error))
                     }
             }
         }
     }
 
-    func resetPassword(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func resetPassword(call: FlutterMethodCall, flutterResult: @escaping FlutterResult) {
         if let arguments = call.arguments as? NSDictionary {
             var username = ""
             
@@ -242,24 +240,24 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
                 username = val
             }
 
-            Amplify.Auth.resetPassword(for: username) { result in
+            _ = Amplify.Auth.resetPassword(for: username) { result in
                 do {
                     let resetResult = try result.get()
                     DispatchQueue.main.async {
-                        result(convertResetPasswordResult(resetResult))
+                        flutterResult(self.convertResetPasswordResult(resetResult))
                     }
                 } catch {
                     DispatchQueue.main.async {
-                        result(FlutterError(code: "Failed to reset password",
+                        flutterResult(FlutterError(code: "Failed to reset password",
                                 message: "",
-                                details: error.toString()))
+                                details: error))
                     }
                 }
             }
         }
     }
 
-    func confirmResetPassword(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func confirmResetPassword(call: FlutterMethodCall, flutterResult: @escaping FlutterResult) {
         if let arguments = call.arguments as? NSDictionary {
             var username = ""
             var newPassword = ""
@@ -275,44 +273,44 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
                 confirmationCode = val
             }
 
-            Amplify.Auth.confirmResetPassword(
+            _ = Amplify.Auth.confirmResetPassword(
                 for: username,
                 with: newPassword,
                 confirmationCode: confirmationCode) { result in
                     switch result {
                         case .success:
                             DispatchQueue.main.async {
-                                result(true)
+                                flutterResult(true)
                             }
                         case .failure(let error):
                             DispatchQueue.main.async {
-                                result(FlutterError(code: "Failed to confirm reset password",
+                                flutterResult(FlutterError(code: "Failed to confirm reset password",
                                         message: "",
-                                        details: error.toString()))
+                                        details: error))
                             }
                     }
             }
         }
     }
 
-    func isSignedIn(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        Amplify.Auth.fetchAuthSession { result in
+    func isSignedIn(call: FlutterMethodCall, flutterResult: @escaping FlutterResult) {
+        _ = Amplify.Auth.fetchAuthSession { result in
             switch result {
                 case .success(let session):
                     DispatchQueue.main.async {
-                        result(session.isSignedIn)
+                        flutterResult(session.isSignedIn)
                     }
                 case .failure(let error):
                     DispatchQueue.main.async {
-                        result(FlutterError(code: "Failed to fetch auth session",
+                        flutterResult(FlutterError(code: "Failed to fetch auth session",
                             message: "",
-                            details: error.toString()))
+                            details: error))
                     }
             }
         }
     }
 
-    func updatePassword(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func updatePassword(call: FlutterMethodCall, flutterResult: @escaping FlutterResult) {
         if let arguments = call.arguments as? NSDictionary {
             var password = ""
             var newPassword = ""
@@ -324,35 +322,35 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
                 newPassword = val
             }
 
-            Amplify.Auth.update(oldPassword: oldPassword, to: newPassword) { result in
+            _ = Amplify.Auth.update(oldPassword: password, to: newPassword) { result in
                 switch result {
                     case .success:
                         DispatchQueue.main.async {
-                            result(true)
+                            flutterResult(true)
                         }
                     case .failure(let error):
                         DispatchQueue.main.async {
-                            result(FlutterError(code: "Failed to update password",
+                            flutterResult(FlutterError(code: "Failed to update password",
                                     message: "",
-                                    details: error.toString()))
+                                    details: error))
                         }
                 }
             }
         }
     }
 
-    func getUserAttributes(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        Amplify.Auth.fetchUserAttributes() { result in
+    func getUserAttributes(call: FlutterMethodCall, flutterResult: @escaping FlutterResult) {
+        _ = Amplify.Auth.fetchUserAttributes() { result in
             switch result {
                 case .success(let attributes):
                     DispatchQueue.main.async {
-                        result(convertAttributesArray(attributes))
+                        flutterResult(self.convertAttributesArray(attributes))
                     }
                 case .failure(let error):
                     DispatchQueue.main.async {
-                        result(FlutterError(code: "Failed to fetch user attributes",
+                        flutterResult(FlutterError(code: "Failed to fetch user attributes",
                                 message: "",
-                                details: error.toString()))
+                                details: error))
                     }
             }
         }
@@ -361,7 +359,7 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
     func convertAttributesArray(_ attributes: [AuthUserAttribute ]) -> [String:String] {
         var dict = [String:String]()
         for attribute in attributes {
-            dict[attribute.key.toString()] = attribute.value
+            dict[attribute.key.rawValue] = attribute.value
         }
         return dict
     }
