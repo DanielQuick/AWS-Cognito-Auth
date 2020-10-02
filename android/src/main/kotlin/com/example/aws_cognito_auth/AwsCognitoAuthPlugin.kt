@@ -78,12 +78,7 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
     when (call.method) {
       "initialize" -> initialize(result)
-      "signUp" -> signUp(call.argument<String>("username") ?: "", call.argument<String>("password") ?: "",
-          call.argument<String>("email"),
-          call.argument<String>("name"),
-          call.argument<String>("givenName"),
-          call.argument<String>("familyName"),
-          result)
+      "signUp" -> signUp(call.arguments as HashMap<String, Any>, result)
       "confirmSignUp" -> confirmSignUp(call.argument<String>("username") ?: "", call.argument<String>("code") ?: "", result)
       "resendSignUpCode" -> resendSignUpCode(call.argument<String>("username") ?: "", result)
       "signIn" -> signIn(call.argument<String>("username") ?: "", call.argument<String>("password") ?: "", result)
@@ -107,25 +102,30 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
     flutterResult.success(true);
   }
 
-  fun signUp(username : String, password : String, email : String?, name : String?, givenName : String?, familyName : String?, flutterResult: Result) {
-    val attributes = mutableListOf<AuthUserAttribute>()
-    if (email != null) {
-      attributes.add(AuthUserAttribute(AuthUserAttributeKey.email(), email))
-    }
-    if (name != null) {
-      attributes.add(AuthUserAttribute(AuthUserAttributeKey.name(), name))
-    }
-    if (givenName != null) {
-      attributes.add(AuthUserAttribute(AuthUserAttributeKey.givenName(), givenName))
-    }
-    if (familyName != null) {
-      attributes.add(AuthUserAttribute(AuthUserAttributeKey.familyName(), familyName))
+  fun signUp(parameters: HashMap<String, Any>, flutterResult: Result) {
+
+    val attributes = parameters.getValue("attributes") as HashMap<String, Any>
+    val custom = parameters.getValue("custom") as HashMap<String, Any>
+
+    val username = attributes.getValue("username") as String
+    val password = attributes.getValue("password") as String
+
+    val attributesList = mutableListOf<AuthUserAttribute>()
+
+    if (attributes.containsKey("email")) attributesList.add(AuthUserAttribute(AuthUserAttributeKey.email(), attributes.getValue("email") as String))
+    if (attributes.containsKey("name")) attributesList.add(AuthUserAttribute(AuthUserAttributeKey.name(), attributes.getValue("name") as String))
+    if (attributes.containsKey("givenName")) attributesList.add(AuthUserAttribute(AuthUserAttributeKey.givenName(), attributes.getValue("givenName") as String))
+    if (attributes.containsKey("familyName")) attributesList.add(AuthUserAttribute(AuthUserAttributeKey.familyName(), attributes.getValue("familyName") as String))
+    if (attributes.containsKey("phoneNumber")) attributesList.add(AuthUserAttribute(AuthUserAttributeKey.phoneNumber(), attributes.getValue("phoneNumber") as String))
+
+    custom.forEach {
+      key, value -> attributesList.add(AuthUserAttribute(AuthUserAttributeKey.custom(key), value as String))
     }
 
     Amplify.Auth.signUp(
         username,
         password,
-        AuthSignUpOptions.builder().userAttributes(attributes).build(),
+        AuthSignUpOptions.builder().userAttributes(attributesList).build(),
         {
           result -> activity.runOnUiThread(
             java.lang.Runnable {

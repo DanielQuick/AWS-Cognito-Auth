@@ -19,6 +19,8 @@ class AwsCognitoAuth {
       String name,
       String givenName,
       String familyName,
+      String phoneNumber,
+      Map<String, dynamic> attributes,
       Function(AuthSignUpResult) onResult,
       Function(AuthSignUpError) onError}) async {
     Map<String, dynamic> parameters = {
@@ -37,13 +39,21 @@ class AwsCognitoAuth {
     if (familyName != null) {
       parameters["familyName"] = familyName;
     }
+    if (phoneNumber != null) {
+      parameters["phoneNumber"] = phoneNumber;
+    }
+
+    print("attributes");
+    print(parameters);
+    print("custom");
+    print(attributes);
 
     print("HERE ARE THE PARAMETERS");
     print(parameters);
 
     try {
-      var result =
-          await _channel.invokeMapMethod<String, dynamic>("signUp", parameters);
+      var result = await _channel.invokeMapMethod<String, dynamic>(
+          "signUp", {"attributes": parameters, "custom": attributes});
 
       if (onResult != null) {
         onResult(
