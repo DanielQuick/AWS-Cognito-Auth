@@ -38,6 +38,9 @@ class AwsCognitoAuth {
       parameters["familyName"] = familyName;
     }
 
+    print("HERE ARE THE PARAMETERS");
+    print(parameters);
+
     try {
       var result =
           await _channel.invokeMapMethod<String, dynamic>("signUp", parameters);
