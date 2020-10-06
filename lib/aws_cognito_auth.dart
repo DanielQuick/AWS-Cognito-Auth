@@ -209,28 +209,15 @@ class AwsCognitoAuth {
     }
   }
 
-  static Future<Map<String, String>> getUserAttributes(
-      {Function(Error) onError}) async {
-    try {
-      final result =
-          await _channel.invokeMapMethod<String, String>("getUserAttributes");
-      return result;
-    } catch (e) {
-      if (onError != null)
-        onError(e);
-      else
-        print(e);
-      return null;
-    }
+  static Future<Map<String, String>> getUserAttributes() async {
+    final result =
+        await _channel.invokeMapMethod<String, String>("getUserAttributes");
+    return result;
   }
 
   static Future<bool> isSignedIn() async {
-    try {
-      var result = await _channel.invokeMethod("isSignedIn");
-      return result;
-    } catch (e) {
-      return false;
-    }
+    var result = await _channel.invokeMethod("isSignedIn");
+    return result;
   }
 }
 
