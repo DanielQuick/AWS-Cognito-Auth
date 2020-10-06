@@ -84,7 +84,8 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
     }
 
     func signUp(call: FlutterMethodCall, flutterResult: @escaping FlutterResult) {
-        if let arguments = call.arguments as? NSDictionary {
+        if let args = call.arguments as? NSDictionary, let arguments = args["attributes"] as? NSDictionary {
+            
             var username = ""
             var password = ""
 
@@ -95,12 +96,12 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
             if let arg = arguments["password"], let val = arg as? String {
                 password = val
             }
-
+            
             var userAttributes = [AuthUserAttribute]()
 
-            if let arg = arguments["email"], let val = arg as? String {
-                userAttributes.append(AuthUserAttribute(.email, value: val))
-            }
+             if let arg = arguments["email"], let val = arg as? String {
+                 userAttributes.append(AuthUserAttribute(.email, value: val))
+             }
             if let arg = arguments["name"], let val = arg as? String {
                 userAttributes.append(AuthUserAttribute(.name, value: val))
             }

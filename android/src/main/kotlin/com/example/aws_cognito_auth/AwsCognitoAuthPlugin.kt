@@ -129,7 +129,7 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
         {
           result -> activity.runOnUiThread(
             java.lang.Runnable {
-              flutterResult.success(convertSignUpResult(result))
+              flutterResult.success(true)
             }
           )
         },
