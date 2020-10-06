@@ -96,7 +96,7 @@ class AwsCognitoAuth {
   static Future<void> resendSignUpCode(String username,
       {Function(AuthSignUpResult) onResult, Function onError}) async {
     try {
-      var result = await _channel.invokeMapMethod<String, dynamic>(
+      var result = await _channel.invokeMethod<bool>(
         "resendSignUpCode",
         {
           "username": username.trim().toLowerCase(),
@@ -105,7 +105,7 @@ class AwsCognitoAuth {
       if (onResult != null) {
         onResult(
           AuthSignUpResult(
-            isSignUpComplete: result["isSignUpComplete"],
+            isSignUpComplete: result,
           ),
         );
       }
