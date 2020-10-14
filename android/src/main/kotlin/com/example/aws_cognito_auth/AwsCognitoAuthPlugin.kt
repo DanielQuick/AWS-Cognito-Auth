@@ -23,7 +23,9 @@ import com.amplifyframework.auth.AuthUserAttributeKey
 import com.amplifyframework.auth.result.AuthSignUpResult
 import com.amplifyframework.auth.result.AuthSignInResult;
 import com.amplifyframework.auth.cognito.AWSCognitoAuthPlugin
+import com.amplifyframework.auth.cognito.AWSCognitoAuthSession
 import com.amplifyframework.auth.result.AuthResetPasswordResult;
+import com.amplifyframework.auth.result.AuthSessionResult;
 
 import com.amazonaws.mobile.client.AWSMobileClient;
 import com.amazonaws.mobile.client.Callback;
@@ -100,6 +102,21 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
   fun initialize(flutterResult: Result) {
     Amplify.addPlugin(AWSCognitoAuthPlugin())
     flutterResult.success(true);
+
+
+    // Amplify.Hub.subscribe(HubChannel.AUTH) { hubEvent: HubEvent<*> ->
+    //   if (hubEvent.name == InitializationStatus.SUCCEEDED.toString()) {
+    //       Log.i("AuthQuickstart", "Auth successfully initialized")
+    //   } else if (hubEvent.name == InitializationStatus.FAILED.toString()) {
+    //       Log.i("AuthQuickstart", "Auth failed to succeed")
+    //   } else {
+    //       when (AuthChannelEventName.valueOf(hubEvent.name)) {
+    //           AuthChannelEventName.SIGNED_IN -> Log.i("AuthQuickstart", "Auth just became signed in.")
+    //           AuthChannelEventName.SIGNED_OUT -> Log.i("AuthQuickstart", "Auth just became signed out.")
+    //           AuthChannelEventName.SESSION_EXPIRED -> Log.i("AuthQuickstart", "Auth session just expired.")
+    //       }
+    //   }
+    // }
   }
 
   fun signUp(parameters: HashMap<String, Any>, flutterResult: Result) {
@@ -326,8 +343,23 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
   }
 
   fun isSignedIn(flutterResult : Result) {
-    val mobileClient = Amplify.Auth.getPlugin("awsCognitoAuthPlugin").escapeHatch as AWSMobileClient?
 
-    flutterResult.success(mobileClient!!.isSignedIn())
+    Amplify.Auth.fetchAuthSession(
+        { result ->
+            val cognitoAuthSession = result as AWSCognitoAuthSession
+            when (cognitoAuthSession.identityId.type) {
+                AuthSessionResult.Type.SUCCESS -> activity.runOnUiThread(Runnable {
+                  flutterResult.success(true)
+                })
+                AuthSessionResult.Type.FAILURE -> activity.runOnUiThread(Runnable {
+                  flutterResult.success(false)
+                })
+            }
+        },
+        { error -> activity.runOnUiThread(Runnable {
+                      flutterResult.success(false)
+                    }) }
+    )
   }
 }
+
