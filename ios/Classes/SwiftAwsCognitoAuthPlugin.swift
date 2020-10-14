@@ -123,7 +123,7 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
                     case .failure(let error):
                         DispatchQueue.main.async {
                             flutterResult(FlutterError(code: "Failed to sign up",
-                                        message: error.localizedDescription + " " + error.recoverySuggestion,
+                                        message: error.errorDescription + " " + error.recoverySuggestion,
                                         details: nil))
                         }
                 }
@@ -153,7 +153,7 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
                     case .failure(let error):
                         DispatchQueue.main.async {
                             flutterResult(FlutterError(code: "Failed to confirm sign up",
-                                        message: error.localizedDescription,
+                                        message: error.errorDescription,
                                         details: nil))
                         }
                 }
@@ -179,7 +179,7 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
                     case .failure(let error):
                         DispatchQueue.main.async {
                             flutterResult(FlutterError(code: "Failed to resend sign up code",
-                                        message: error.localizedDescription,
+                                        message: error.errorDescription,
                                         details: nil))
                         }
                 }
@@ -208,7 +208,7 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
                     case .failure(let error):
                         DispatchQueue.main.async {
                             flutterResult(FlutterError(code: "Failed to sign in",
-                                        message: error.localizedDescription,
+                                                       message: error.errorDescription,
                                         details: nil))
                         }
                 }
@@ -226,7 +226,7 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
                 case .failure(let error):
                     DispatchQueue.main.async {
                         flutterResult(FlutterError(code: "Failed to sign out",
-                                    message: error.localizedDescription,
+                                    message: error.errorDescription,
                                     details: nil))
                     }
             }
@@ -286,7 +286,7 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
                         case .failure(let error):
                             DispatchQueue.main.async {
                                 flutterResult(FlutterError(code: "Failed to confirm reset password",
-                                        message: error.localizedDescription,
+                                        message: error.errorDescription,
                                         details: nil))
                             }
                     }
@@ -304,7 +304,7 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
                 case .failure(let error):
                     DispatchQueue.main.async {
                         flutterResult(FlutterError(code: "Failed to fetch auth session",
-                            message: error.localizedDescription,
+                            message: error.errorDescription,
                             details: nil))
                     }
             }
@@ -332,7 +332,7 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
                     case .failure(let error):
                         DispatchQueue.main.async {
                             flutterResult(FlutterError(code: "Failed to update password",
-                                    message: error.localizedDescription,
+                                    message: error.errorDescription,
                                     details: nil))
                         }
                 }
@@ -350,7 +350,7 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
                 case .failure(let error):
                     DispatchQueue.main.async {
                         flutterResult(FlutterError(code: "Failed to fetch user attributes",
-                                message: error.localizedDescription,
+                                message: error.errorDescription,
                                 details: nil))
                     }
             }
