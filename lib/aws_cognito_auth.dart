@@ -219,6 +219,11 @@ class AwsCognitoAuth {
     var result = await _channel.invokeMethod("isSignedIn");
     return result;
   }
+
+  static Future<String> getUserId() async {
+    var result = await _channel.invokeMethod("getUserId");
+    return result;
+  }
 }
 
 enum ConfirmResetPasswordError {

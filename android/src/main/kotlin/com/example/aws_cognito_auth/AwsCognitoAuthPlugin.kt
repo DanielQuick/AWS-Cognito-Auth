@@ -90,6 +90,7 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
       "updatePassword" -> updatePassword(call.argument<String>("password") ?: "", call.argument<String>("newPassword") ?: "", result)
       "getUserAttributes" -> getUserAttributes(result)
       "isSignedIn" -> isSignedIn(result)
+      "getUserId" -> getUserId(result)
 
       else -> result.notImplemented()
     }
@@ -360,6 +361,11 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
                       flutterResult.success(false)
                     }) }
     )
+  }
+
+  fun getUserId(flutterResult : Result) {
+    val userId = Amplify.Auth.getCurrentUser().getUserId()
+    flutterResult.success(userId)
   }
 }
 
