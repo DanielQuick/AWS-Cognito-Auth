@@ -49,6 +49,6 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.android.support:appcompat-v7:28.0.0'
     
-    implementation 'com.amplifyframework:core:1.0.0'
-    implementation 'com.amplifyframework:aws-auth-cognito:1.0.0'
+    implementation 'com.amplifyframework:core:1.4.1'
+    implementation 'com.amplifyframework:aws-auth-cognito:1.4.1'
 }

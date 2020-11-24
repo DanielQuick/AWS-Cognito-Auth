@@ -224,6 +224,11 @@ class AwsCognitoAuth {
     var result = await _channel.invokeMethod("getUserId");
     return result;
   }
+
+  static Future<bool> updateUserAttribute(Map attributes) async {
+    var result = await _channel.invokeMethod("updateUserAttribute", attributes);
+    return result;
+  }
 }
 
 enum ConfirmResetPasswordError {

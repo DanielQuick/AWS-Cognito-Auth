@@ -17,8 +17,9 @@ import android.content.Context
 import android.app.Activity
 
 import com.amplifyframework.core.Amplify
+import com.amplifyframework.auth.AuthException;
 import com.amplifyframework.auth.options.AuthSignUpOptions
-import com.amplifyframework.auth.AuthUserAttribute;
+import com.amplifyframework.auth.AuthUserAttribute
 import com.amplifyframework.auth.AuthUserAttributeKey
 import com.amplifyframework.auth.result.AuthSignUpResult
 import com.amplifyframework.auth.result.AuthSignInResult;
@@ -29,6 +30,7 @@ import com.amplifyframework.auth.result.AuthSessionResult;
 
 import com.amazonaws.mobile.client.AWSMobileClient;
 import com.amazonaws.mobile.client.Callback;
+import com.amplifyframework.core.Consumer;
 
 /** AmplifyConfigurePlugin */
 public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
@@ -91,6 +93,7 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
       "getUserAttributes" -> getUserAttributes(result)
       "isSignedIn" -> isSignedIn(result)
       "getUserId" -> getUserId(result)
+      "updateUserAttribute" -> updateUserAttribute(call.arguments as HashMap<String, Any>, result)
 
       else -> result.notImplemented()
     }
@@ -123,7 +126,7 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
   fun signUp(parameters: HashMap<String, Any>, flutterResult: Result) {
 
     val attributes = parameters.getValue("attributes") as HashMap<String, Any>
-    val custom = parameters.getValue("custom") as HashMap<String, Any>
+    val custom = parameters.getValue("custom") as? HashMap<String, Any>
 
     val username = attributes.getValue("username") as String
     val password = attributes.getValue("password") as String
@@ -136,8 +139,10 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
     if (attributes.containsKey("familyName")) attributesList.add(AuthUserAttribute(AuthUserAttributeKey.familyName(), attributes.getValue("familyName") as String))
     if (attributes.containsKey("phoneNumber")) attributesList.add(AuthUserAttribute(AuthUserAttributeKey.phoneNumber(), attributes.getValue("phoneNumber") as String))
 
-    custom.forEach {
-      key, value -> attributesList.add(AuthUserAttribute(AuthUserAttributeKey.custom(key), value as String))
+    if (custom != null) {
+      custom.forEach {
+        key, value -> attributesList.add(AuthUserAttribute(AuthUserAttributeKey.custom(key), value as String))
+      }
     }
 
     Amplify.Auth.signUp(
@@ -366,6 +371,27 @@ public class AwsCognitoAuthPlugin: FlutterPlugin, MethodCallHandler, ActivityAwa
   fun getUserId(flutterResult : Result) {
     val userId = Amplify.Auth.getCurrentUser().getUserId()
     flutterResult.success(userId)
+  }
+
+  fun updateUserAttribute(parameters: HashMap<String, Any>, flutterResult : Result) {
+
+    var attribute = AuthUserAttribute(AuthUserAttributeKey.email(), parameters["email"] as String)// : AuthUserAttribute? = null
+
+    // if (parameters.containsKey("email")) attribute = AuthUserAttribute(AuthUserAttributeKey.email(), parameters["email"] as String)
+
+    Amplify.Auth.updateUserAttribute(
+      attribute,
+      { result ->
+        activity.runOnUiThread(Runnable {
+          flutterResult.success(true)
+        })
+      },
+      { error ->
+        activity.runOnUiThread(Runnable {
+          flutterResult.success(false)
+        })
+      }
+    )
   }
 }
 
