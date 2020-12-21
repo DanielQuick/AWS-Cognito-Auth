@@ -171,11 +171,13 @@ class AwsCognitoAuth {
     }
   }
 
-  static Future<void> confirmResetPassword(String password, String code,
+  static Future<void> confirmResetPassword(
+      String username, String password, String code,
       {Function onResult,
       Function(AuthConfirmResetPasswordError) onError}) async {
     try {
       var _ = await _channel.invokeMethod("confirmResetPassword", {
+        "username": username.trim(),
         "password": password.trim(),
         "code": code.trim(),
       });

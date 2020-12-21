@@ -267,10 +267,13 @@ public class SwiftAwsCognitoAuthPlugin: NSObject, FlutterPlugin {
             if let arg = arguments["username"], let val = arg as? String {
                 username = val
             }
-            if let arg = arguments["newPassword"], let val = arg as? String {
+
+            print("username:")
+            print(username)
+            if let arg = arguments["password"], let val = arg as? String {
                 newPassword = val
             }
-            if let arg = arguments["confirmationCode"], let val = arg as? String {
+            if let arg = arguments["code"], let val = arg as? String {
                 confirmationCode = val
             }
 
